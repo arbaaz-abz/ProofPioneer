@@ -33,9 +33,9 @@ def initialize_webdriver():
         # Prevent detection
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-            "userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            "userAgent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
                          'AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/85.0.4183.102 Safari/537.36'
+                         'Chrome/129.0.0.0 Safari/537.36'
         })
     except WebDriverException as e:
         print(f"Error initializing WebDriver: {e}", file=sys.stderr)

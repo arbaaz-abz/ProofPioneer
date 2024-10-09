@@ -87,7 +87,6 @@ if __name__ == "__main__":
     # gemini_pro_api = GeminiAPI(model_name="gemini-1.5-pro-latest")
 
     results = {}
-    n_pages = 1
     claim_queries = {}
 
     # Create a CSV file to store the search results

@@ -96,7 +96,7 @@ def main():
         search_results = json.load(fp)
 
     # Setup storage
-    store_folder = "outputs/webpages_new/"
+    store_folder = "outputs/webpages/"
     create_directory_chain(store_folder)
 
     # Initialize database

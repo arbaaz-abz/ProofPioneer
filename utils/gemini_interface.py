@@ -5,23 +5,24 @@ import json
 import time
 
 class GeminiAPI:
-    def __init__(self, model_name, temperature=0.45, top_p=0.9, top_k=64, response_mime_type="text/plain"):
+    def __init__(self, model_name, temperature=0.25, top_p=0.9, top_k=40, response_mime_type="text/plain"):
         self.generation_config = {
             "temperature": temperature,
             "top_p": top_p,
             "top_k": top_k,
             "response_mime_type": response_mime_type,
         }
-        if model_name == "gemini-1.5-flash-latest":
+        if "flash" in model_name:
             self.max_requests_per_key = 1500
-            self.sleep_time = 4
+            self.sleep_time = 3.75
         else:
             self.max_requests_per_key = 50
             self.sleep_time = 30
+            
         self.model_name = model_name
         self.request_count = 0
 
-        with open("secrets/gemini_keys.json", "r") as f:
+        with open("ProofPioneer/secrets/gemini_keys.json", "r") as f:
             self.api_keys = cycle(json.load(f)["keys"])
 
         self.get_model = self.get_gemini_model()
