@@ -5,7 +5,7 @@ import json
 import time
 
 class GeminiAPI:
-    def __init__(self, model_name, temperature=0.25, top_p=0.9, top_k=40, response_mime_type="text/plain"):
+    def __init__(self, model_name, secrets_file, temperature=0.25, top_p=0.9, top_k=40, response_mime_type="text/plain"):
         self.generation_config = {
             "temperature": temperature,
             "top_p": top_p,
@@ -22,7 +22,7 @@ class GeminiAPI:
         self.model_name = model_name
         self.request_count = 0
 
-        with open("ProofPioneer/secrets/gemini_keys.json", "r") as f:
+        with open(secrets_file, "r") as f:
             self.api_keys = cycle(json.load(f)["keys"])
 
         self.get_model = self.get_gemini_model()

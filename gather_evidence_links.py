@@ -2,6 +2,7 @@ import json
 import os
 from nltk import pos_tag, word_tokenize
 from tqdm import tqdm
+import re
 import random
 from utils.gemini_interface import GeminiAPI
 from utils.google_customsearch import GoogleCustomSearch
@@ -34,12 +35,11 @@ def create_output_folder(folder_name):
 
 
 def parse_llm_questions_response(response):
-    questions = []
-    for sentence in response.text.split('\n'):
-        sentence = sentence.strip()
-        if sentence.endswith('?'):
-            questions.append(sentence)
-    return questions
+    pattern = r'^[12]\.\s*\**(.+?)\**\s*$'
+    matches = re.findall(pattern, response.text, re.MULTILINE)
+    # Clean up any remaining markdown or whitespace
+    cleaned_questions = [question.strip() for question in matches]
+    return cleaned_questions
 
 def extract_and_format_date(check_date, default_date="2022-01-01"):
 
@@ -64,9 +64,9 @@ def extract_and_format_date(check_date, default_date="2022-01-01"):
 
 if __name__ == "__main__":
     # Load a claims dataset
-    with open("../datasets/AVeriTeC/data/train.json") as fp:
+    with open("claim_datasets/averitec/train.json") as fp:
         examples = json.load(fp) 
-        examples = random.sample(examples, 20) # Pick 10 random examples for testing
+        examples = random.sample(examples, 50) # Pick 50 random examples for testing
         min_date = "2022-01-01" # YYYY-MM-DD
 
     # Question generation prompt
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     google_search = GoogleCustomSearch(max_api_calls_per_account, n_pages)
 
     # Gemini Flash 1.5 Interface 
-    gemini_flash_api = GeminiAPI(model_name="gemini-1.5-flash-latest")
+    gemini_flash_api = GeminiAPI(model_name="gemini-1.5-flash-latest", secrets_file="secrets/gemini_keys.json")
     # gemini_pro_api = GeminiAPI(model_name="gemini-1.5-pro-latest")
 
     results = {}
@@ -135,10 +135,11 @@ if __name__ == "__main__":
         # 3. Process and remove duplicate questions (if any)
         processed_questions = set()
         for question in llm_questions:
-            processed_question = string_to_search_query(question, None)
-            if processed_question not in search_strings:
-                processed_questions.add(processed_question)
-                search_strings.append(processed_question)
+            # processed_question = string_to_search_query(question, None)
+            # if processed_question not in search_strings:
+            if question not in search_strings:
+                processed_questions.add(question)
+                search_strings.append(question)
                 search_types.append("generated_question")
 
         search_results = []

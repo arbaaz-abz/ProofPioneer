@@ -5,6 +5,7 @@ import trafilatura
 from trafilatura.settings import DEFAULT_CONFIG
 from trafilatura.meta import reset_caches
 import sys
+import json
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -115,24 +116,26 @@ def get_page(url):
 
 def html2lines(page):
     if not page or len(page.strip()) == 0:
-        return []
+        print("No page found")
+        return {}
 
-    text = trafilatura.extract(page, favor_recall=True, include_tables=True, include_formatting=True, no_fallback=False)
-    
+    text = trafilatura.extract(page, 
+                               favor_recall=True, 
+                               with_metadata = True,    
+                               no_fallback=False,
+                               output_format="json"
+                            )
+    try:
+        return json.loads(text)
+    except Exception as e:
+        print(e)
+        return {}
     # Disabling increases performance but may lead to memory leaks in some cases, particularly in large-scale applications
     # reset_caches() 
 
-    if text is None:
-        return []
-
-    return text.split("\n")
-
 def url2lines(url):
     page = get_page(url)
-    if page is None:
-        return []
     return html2lines(page)
-
 
 # def save_content(url, output_dir):
 #     lines = url2lines(url)

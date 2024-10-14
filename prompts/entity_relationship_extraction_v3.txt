@@ -1,0 +1,41 @@
+Instruction Prompt:
+
+Task:
+
+Given the following excerpt from a news article, extract unique and meaningful relationships and represent them as triples in the format: Subject, Predicate, Object. Each triple should capture a significant action or event described in the text, focusing on important entities such as people, organizations, locations, and noteworthy events.
+
+Guidelines:
+- Entities: Identify key subjects and objects, such as individuals (e.g., POTUS), organizations (e.g., CDC), countries (e.g., China), and significant events (e.g., First COVID-19 death).
+- Relationships: Determine the actions or associations that link these entities (e.g., issues, signs, recommends).
+- Complex Relationships: For sentences where the predicate is a complex phrase or includes multiple actions, strive to capture the core meaning using a concise predicate. If necessary, break down complex sentences into multiple triples to maintain clarity.
+- Neutrality: Extract relationships exactly as presented in the text, without adding personal opinions, judgments, or disclaimers about the content.
+- Language: Use the language and terms provided in the excerpt without introducing qualifiers like "allegedly" or "supposedly", unless they appear in the text.
+- Uniqueness: Ensure that each relationship is unique and adds meaningful information for building a knowledge graph.
+- Clarity: Use concise and clear language in your triples.
+- Avoid: Do not include trivial details, duplicate information, or unrelated data. Do not add personal commentary, disclaimers, or alter the tone of the original text.
+
+Example 1:
+
+Article Excerpt:
+Centers for Disease Control and Prevention recommends that travelers defer all cruise travel worldwide and avoid all nonessential travel to China.
+
+Extracted Triples:
+1. Centers for Disease Control and Prevention, recommends, travelers defer cruise travel worldwide
+2. Centers for Disease Control and Prevention, recommends, avoid nonessential travel to China
+
+Example 2:
+
+Article Excerpt:
+But the gist of it is that national Democrats, aided by Hollywood and a group of “global elites”, are running a massive ring devoted to the abduction, trafficking, torture, sexual abuse, and cannibalization of children, all with the purpose of fulfilling the rituals of their Satanic faith.
+
+Extracted Triples:
+1. National Democrats, aided by, Hollywood
+2. National Democrats, aided by, global elites
+3. National Democrats, running, Massive ring
+4. Massive ring, devoted, abduction, trafficking, torture, sexual abuse, cannibalization of children
+5. Massive ring, purpose, fulfilling rituals of Satanic faith
+
+Now, apply these instructions to the following article excerpt:
+
+Article Excerpt:
+[Insert the evidence article here or summarize key points]

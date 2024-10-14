@@ -1,9 +1,10 @@
 Instruction:
-Given the following claim, generate "two concise and direct" questions that would help verify its veracity. The questions should:
+Take on the role of a journalist/ Fact-checker. You have been given a claim and asked to generate two questions that would help verify its veracity.
 
+Guidelines:
 1. "Target the main assertions" in the claim.
-2. Be "suitable for use as search engine queries".
-3. Focus on being "specific and clear".
+2. Ensure questions are optimized for search engine queries.
+3. Focus on clarity without unnecessary complexity.
 4. "Avoid adding explanations or additional information" within the questions.
 5. Cover the "Who," "What," "When," "Where," "Why," and "How" aspects to address all possible angles.
 
@@ -18,53 +19,36 @@ To create effective questions, follow these guidelines:
 - How did it happen?
 
 2. Extract Keywords and Phrases:
-- Select relevant terms and phrases critical to the claim.
-- Include names, events, actions, dates, and locations.
+- Select relevant terms such as names, events, actions, dates, and locations.
 
 3. Formulate Targeted Questions:
 - Use the key components and keywords to create specific questions.
-- Ensure each question addresses a single aspect of the claim.
+- Aim for brevity without sacrificing clarity. 
 
 4. Use Simple and Direct Language:
 - Keep the questions straightforward and easy to understand.
 - Avoid complex or compound sentences.
 
-5. Limit to One Idea per Question:
-- Each question should focus on one point to maintain clarity.
-
-6. Avoid Additional Information:
-- Do not include explanations, assumptions, or extra details within the questions.
-
-Examples:
 Example 1:
 
 Claim:
-
-"Donald Trump delivered the largest tax cuts in American history."
+"After the police shooting of Jacob Blake, Gov. Tony Evers & Lt. Gov. Mandela Barnes did not call for peace or encourage calm."
 
 Questions:
+1. Did Gov. Tony Evers call for peace or encourage calm after the police shooting of Jacob Blake?
+2. Did Lt. Gov. Mandela Barnes call for peace or encourage calm after the police shooting of Jacob Blake?
 
-Were Donald Trump's tax cuts the largest in U.S. history?
-How do Trump's tax cuts compare to previous tax cuts in the United States?
-Which U.S. president enacted the largest tax cuts in American history?
 Example 2:
 
 Claim:
-
-"Professor Tasuku Honjo worked in the Wuhan laboratory in China for four years."
+"35% of revenue goes to states. (In Nigeria)"
 
 Questions:
+1. What percentage of Nigeria’s federal revenue is allocated to state governments?
+2. How is federal revenue distributed to the states in Nigeria?
 
-Did Professor Tasuku Honjo work at a laboratory in Wuhan, China?
-Has Tasuku Honjo ever been affiliated with the Wuhan Institute of Virology?
-Did Tasuku Honjo conduct research in China for four years?
 Now, your turn:
 Claim:
-
-[Insert the claim here]
+"[Insert the claim here]"
 
 Questions:
-1.
-2.
-
-Please provide exactly "two questions", one per line, without any additional text or formatting.

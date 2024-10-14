@@ -75,10 +75,10 @@ def insert_index(conn, key, path, original_url, lock):
 
 def get_and_store(link, store_file_path):
     try:
-        page_lines = url2lines(link)
-        content = "\n".join([link] + page_lines) if page_lines else "NA"
+        page_json = url2lines(link)
+        content = page_json if page_json else {"source": link, "text": "NA"}
         with open(store_file_path, "w", encoding='utf-8') as out_f:
-            out_f.write(content)
+            json.dump(content, out_f, indent=2)
         gc.collect()
         print(f"Successfully processed: {link}")
         return True, link, store_file_path
@@ -114,6 +114,11 @@ def main():
 
     # Prepare tasks
     for claim_index, (claim, queries) in enumerate(tqdm(search_results.items())):
+
+        # For testing
+        # if claim_index == 2:
+        #     break
+
         for query_index, (page_num, page_results) in enumerate(queries.items()):
             for page_num, results in page_results.items():
                 for webpage_index, result_object in enumerate(results):
@@ -128,14 +133,12 @@ def main():
                     else:
                         store_counter += 1
                         store_file_path = os.path.join(
-                            store_folder, f"webpage_{store_counter}.txt"
+                            store_folder, f"webpage_{store_counter}.json"
                         )
                         visited[link] = store_file_path
                         arguments.add((link, store_file_path))
                     
                     index_entries.append((key, store_file_path, link))
-        # if claim_index == 1:
-        #     break
 
     print(f"Total unique links to process: {len(arguments)}")
     print(f"Total key-path mappings to insert: {len(index_entries)}")
