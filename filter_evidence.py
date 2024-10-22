@@ -1,7 +1,6 @@
 import json
 import sqlite3
 import nltk
-import os
 import re
 from typing import List, Dict, Any
 from sentence_transformers import SentenceTransformer, util
@@ -171,7 +170,7 @@ def process_claims(search_results: Dict[str, Any], database_path: str, prompt_cl
                         continue
 
                     # Step 1: Filter sentences based on similarity
-                    sentence_threshold = 0.575
+                    sentence_threshold = 0.55
                     relevant_sentence_indices, similarity_scores = extract_relevant_sentences(
                         sentences,
                         embeddings_model,
@@ -243,6 +242,6 @@ if __name__ == "__main__":
     main()
 
 
-
+# TODO: For each extracted high quality sentence, include its surrounding sentences to provide more context. 
 # TODO: CHECK DIFFERENT EMBEDDING COMPARISION - Jaccard Similarity, Cosine Similarity, Euclidean Distance
 

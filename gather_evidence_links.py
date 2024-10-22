@@ -2,7 +2,6 @@ import json
 import os
 from nltk import pos_tag, word_tokenize
 from tqdm import tqdm
-import re
 import random
 from utils.gemini_interface import GeminiAPI
 from utils.google_customsearch import GoogleCustomSearch
@@ -34,12 +33,12 @@ def create_output_folder(folder_name):
         os.makedirs(folder_name)
 
 
-def parse_llm_questions_response(response):
-    pattern = r'^[12]\.\s*\**(.+?)\**\s*$'
-    matches = re.findall(pattern, response.text, re.MULTILINE)
-    # Clean up any remaining markdown or whitespace
-    cleaned_questions = [question.strip() for question in matches]
-    return cleaned_questions
+# def parse_llm_questions_response(response):
+#     pattern = r'^[12]\.\s*\**(.+?)\**\s*$'
+#     matches = re.findall(pattern, response.text, re.MULTILINE)
+#     # Clean up any remaining markdown or whitespace
+#     cleaned_questions = [question.strip() for question in matches]
+#     return cleaned_questions
 
 def extract_and_format_date(check_date, default_date="2022-01-01"):
 
@@ -72,6 +71,12 @@ if __name__ == "__main__":
     # Question generation prompt
     with open("prompts/prompt_2Q.txt", "r") as f:
         question_prompt_template = f.read()
+        response_schema_questions = {
+            "type": "array",
+            "items": {
+                "type": "string",
+            },
+        }
 
     # Save folder
     save_folder = "outputs"
@@ -82,9 +87,16 @@ if __name__ == "__main__":
     max_api_calls_per_account = 100
     google_search = GoogleCustomSearch(max_api_calls_per_account, n_pages)
 
-    # Gemini Flash 1.5 Interface 
-    gemini_flash_api = GeminiAPI(model_name="gemini-1.5-flash-latest", secrets_file="secrets/gemini_keys.json")
-    # gemini_pro_api = GeminiAPI(model_name="gemini-1.5-pro-latest")
+    # Gemini Interface 
+    gemini = GeminiAPI(model_name="gemini-1.5-flash-latest", 
+                                 secrets_file="secrets/gemini_keys.json",
+                                 response_mime_type="application/json",
+                                 response_schema=response_schema_questions)
+    
+    # gemini = GeminiAPI(model_name="gemini-1.5-pro-latest", 
+    #                              secrets_file="secrets/gemini_keys.json",
+    #                              response_mime_type="application/json",
+    #                              response_schema=response_schema_questions)
 
     results = {}
     claim_queries = {}
@@ -92,7 +104,6 @@ if __name__ == "__main__":
     # Create a CSV file to store the search results
     results_filename = f"{save_folder}/search_results.json"
     claim_queries_filename = f"{save_folder}/claim_queries.json"
-    # csv_header = ["index", "claim", "link", "page_num", "search_string", "search_type", "store_file_path"]
 
     existing = {}
 
@@ -111,10 +122,8 @@ if __name__ == "__main__":
         
         # Generate questions using Gemini API
         prompt = question_prompt_template.replace("[Insert the claim here]", claim)
-        response = gemini_flash_api.get_llm_response(prompt)
-
-        # Extract the questions from the response
-        llm_questions = parse_llm_questions_response(response)
+        response = gemini.get_llm_response(prompt)
+        llm_questions = json.loads(response.text)
 
         # Extract and format the date
         sort_date = extract_and_format_date(example.get("claim_date", ""), default_date=min_date)

@@ -5,3 +5,8 @@ selenium
 google-api-python-client
 google-generativeai
 tqdm
+sentence-transformers
+torch-geometric
+torch
+networkx
+matplotlib
