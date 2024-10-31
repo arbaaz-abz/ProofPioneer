@@ -1,0 +1,135 @@
+You are trying to verify how factual a piece of text is. To do so, you need to decompose the sentence and extract as many fine-grained verifiable facts mentioned as possible. Each of these fine-grained facts should be verifiable against reliable external world knowledge (e.g., via Wikipedia, news articles and search engines).
+
+Exclude any stories, personal experiences, hypotheticals (e.g., "would be" or subjunctive), subjective statements (e.g., opinions), suggestions, advice, instructions, and similar content. Biographical, historical, scientific, and other factual texts should be included.
+
+Each fact should be a verifiable statement, question, or topic that can be checked against reliable sources. Facts may describe events, states, quotes, relationships, comparisons, or causal connections between entities or events. Include necessary time and location information when relevant. Quotations should be extracted verbatim with the source when available.
+
+Focus on the named entities, numbers and dates in the sentence and extract relevant information. Use the location ISO code and claim date for additional context and to help guide your decomposition. Each fact should be understandable on its own without additional context. Refer to all entities by their names rather than pronouns. Use the names of entities rather than definite noun phrases (e.g., "the teacher") whenever possible. If a definite noun phrase is used, add modifiers (e.g., an embedded clause, a prepositional phrase, etc.). Each fact should be one sentence or question with zero or at most one embedded clause.
+
+While focusing on extracting specific, fine-grained facts, you may also include general knowledge queries, where relevant, if it can help fetch contextual information relevant to the claim. These general queries should be concise and formulated to retrieve articles or information that provide background or broader understanding necessary for fact verification. Remember that the goal is to aid another system in verifying the claim by supplying both specific details and helpful context.
+
+You do not need to justify what you extract.
+
+If there is no verifiable fact in the sentence, please return a list with a single string ["No verifiable claim"].
+
+Here are some examples:
+
+Example 1:
+Claim: Americans prefer giving people under 65 an option to join Medicare as opposed to requiring them to give up their current coverage.
+Claim speaker: Pete Buttigieg
+Claim date: 15-10-2019
+Claim type: Event/Property
+Location_ISO_code: US
+Queries/Facts:
+["Americans under 65 have the option to join Medicare",
+"Americans under 65 are required to give up their current medical coverage",
+"Who can join Medicare in America"]
+
+Example 2:
+Claim: Why should you pay more taxes than Donald Trump pays? And that's a fact. $750. Remember what he said when that was raised a while ago, how he only pays ... He said, 'Because I'm smart. I know how to game the system.'"
+Claim speaker: Joe Biden
+Claim date: 30-10-2020
+Claim type: Event/Property Claim
+Location_ISO_code: US
+Queries/Facts:
+["Tax paid by Donald Trump in 2020",
+"Donald Trump paid $750 in taxes in 2020",
+"Donald Trump claims 'Because I'm smart. I know how to game the system.'",
+"Tax paid by an average American citizen in 2020"]
+
+Example 3:
+Claim: The amount set aside for repayment of debt in Kenya is much higher than all the money that Treasury Cabinet Secretary Ukur Yatani is putting together for development expenditure.
+Claim speaker: UNKNOWN
+Claim date: 11-6-2020
+Claim type: Numerical
+Location_ISO_code: KE
+Queries/Facts:
+["Debt repayment amount of Kenya in 2020",
+"Ukur Yatani is the Treasury Cabinet Secretary of Kenya",
+"How much development expenditure is Treasury Cabinet Secretary Ukur Yatani planning to invest",
+"Is Kenya's debt repayment budget higher than the development funds allocated by Treasury Secretary Ukur Yatani"]
+
+Example 4:
+Claim: The CEO of McDonald's makes 2,100 times more than the people slinging hash at McDonald's.
+Claim speaker: Jay Inslee
+Claim date: 27-6-2019
+Claim type: Numerical
+Location_ISO_code: US
+Queries/Facts:
+["Salary of McDonald's CEO in 2019",
+"Salary of a US McDonald's employee in 2019",
+"McDonald's CEO makes 2100 more than the average McDonald's employee in 2019"]
+
+Example 5:
+Claim: Ayushman Bharat provides comprehensive health coverage up to Rs. 5 lakh per family per year to around 50 crore people.
+Claim speaker: UNKNOWN
+Claim date: 8-6-2019
+Claim type: Numerical
+Location_ISO_code: IN
+Queries/Facts:
+["Details about Ayushman Bharat's health coverage",
+"Ayushman Bharat covers around 50 crore people in India",
+"Ayushman Bharat provides health coverage up to Rs. 5 lakh per family per year"]
+
+Example 6:
+Claim: We actually saw revenues to the Treasury increase after we lowered taxes in 2017. Rest assured the Democrats do not want you to know that.
+Claim speaker: Tim Scott
+Claim date: 24-8-2020
+Claim type: Numerical, Event/Property
+Location_ISO_code: US
+Queries/Facts:
+["Revenues to the US Treasury increased in 2017",
+"Taxes in the US lowered in 2017",
+"The US government lowered taxes in 2017, leading to an increase in revenues to the US Treasury.",
+"Democrats want to hide that revenues to the US Treasury increased after lowering taxes in 2017"]
+
+Example 7:
+Claim: Joe Biden voted for the Iraq War and he supported wars in Serbia, Syria, and Libya.
+Claim speaker: Senator Rand Paul
+Claim date: 25-8-2020
+Claim type: Position Statement
+Location_ISO_code: US
+Queries/Facts:
+["Joe Biden voted for the Iraq War",
+"Joe Biden supported war in Syria",
+"Joe Biden supported war in Serbia",
+"Joe Biden supported war in Lybia"]
+
+Example 8:
+Claim: Hong Kong uses AI technology using facial recognition to identify protesters if they so much as do anything on the street, so they can follow up with them and detain them later.
+Claim speaker: Gretchen Whitmer
+Claim date: 20-12-2019
+Claim type: Causal
+Location_ISO_code: HK
+Queries/Facts:
+["Hong Kong has access to AI technology with facial recognition in 2019",
+"Hong Kong uses AI technology with facial recognition to identify and detail protesters in 2019"]
+
+Example 9:
+Claim: Melania Trump tweeted in support of India, following the Indo-China clash at Galwan Valley.
+Claim speaker: Gabe Hoffman
+Claim date: 19-6-2020
+Claim type: Position Statement
+Location_ISO_code: IN
+Queries/Facts:
+["Melania Trump tweets in support of India",
+"Melania Trump posts a tweet in support of India after the Indo-China clash at Galwan Valley in 2020",
+"India and China clashed at Galwan Valley in 2020"]
+
+Example 10:
+Claim: Under Biden’s policy, immigrants in the country illegally "get welfare benefits. United States citizens don't get what they're looking to give illegal immigrants."
+Claim speaker: Donald Trump
+Claim date: 14-7-2020
+Claim type: Quote Verification
+Location_ISO_code: US
+Queries/Facts:
+["Illegal immigrants in the USA get welfare benefits",
+"United States citizens don't get welfare benefits",
+"Biden's policy on immigrants in the USA"]
+
+Now, please extract facts for the following claim as JSON list:
+Claim: [Insert the claim here]
+Claim speaker: [Insert the claim speaker here]
+Claim date: [Insert the claim date here]
+Claim type: [Insert the claim type here]
+Location_ISO_code: [Insert the location ISO code here]

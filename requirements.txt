@@ -10,3 +10,7 @@ torch-geometric
 torch
 networkx
 matplotlib
+seaborn
+scikit-learn
+pandas
+requests

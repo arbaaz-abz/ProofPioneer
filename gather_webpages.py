@@ -15,6 +15,12 @@ from utils.webpage_crawler_v2 import url2lines
 BLACKLIST_DOMAINS = {
     "jstor.org",
     "facebook.com",
+    "twitter.com",
+    "x.com",
+    "quora.com",
+    "tiktok.com"
+    "instagram.com",
+    "youtube.com",
     "ftp.cs.princeton.edu",
     "nlp.cs.princeton.edu",
     "huggingface.co",
@@ -38,10 +44,13 @@ def get_domain_name(url):
 def should_filter_link(link):
     domain = get_domain_name(link)
     if domain in BLACKLIST_DOMAINS:
+        print("Blacklisted domain: ", link)
         return True
     if any(b_file in link for b_file in BLACKLIST_FILES):
+        print("Blacklisted file: ", link)
         return True
     if link.endswith((".pdf", ".doc")):
+        print("Blacklisted file type: ", link)
         return True
     return False
 
@@ -97,9 +106,11 @@ def main():
 
     # Setup storage
     store_folder = "outputs/webpages/"
+    os.system("rm -rf {store_folder}")
     create_directory_chain(store_folder)
 
     # Initialize database
+    os.system("rm -rf outputs/index.db")
     conn = initialize_db("outputs/index.db")
 
     # Initialize multiprocessing manager and shared data structures
@@ -114,12 +125,7 @@ def main():
 
     # Prepare tasks
     for claim_index, (claim, queries) in enumerate(tqdm(search_results.items())):
-
-        # For testing
-        # if claim_index == 2:
-        #     break 
-
-        for query_index, (page_num, page_results) in enumerate(queries.items()):
+        for query_index, (query, page_results) in enumerate(queries.items()):
             for page_num, results in page_results.items():
                 for webpage_index, result_object in enumerate(results):
                     link = str(result_object["link"]).strip()
@@ -143,6 +149,8 @@ def main():
     print(f"Total unique links to process: {len(arguments)}")
     print(f"Total key-path mappings to insert: {len(index_entries)}")
 
+    # quit(0)
+
     # Define the number of processes based on CPU count
     cpu_count = multiprocessing.cpu_count() - 1
     print(f"Starting multiprocessing with {cpu_count} processes.")
@@ -156,7 +164,10 @@ def main():
         for future in tqdm(as_completed(future_to_args), total=len(future_to_args)):
             success, url, path = future.result()
             if not success:
-                print(f"Failed to process link: {url}")
+                # Log the failed link
+                with open("outputs/failed_links.txt", "a") as f:
+                    f.write(f"{url}\n")
+                # print(f"Failed to process link: {url}")
 
     # Insert all key-path mappings into the database
     print("Starting database insertion of key-path mappings.")

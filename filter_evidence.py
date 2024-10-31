@@ -4,10 +4,10 @@ import nltk
 import re
 from typing import List, Dict, Any
 from sentence_transformers import SentenceTransformer, util
+from utils.gemini_interface import GeminiAPI
 
 # Ensure necessary NLTK data is downloaded
 nltk.download('punkt')
-
 
 def load_unwanted_patterns(config_path: str) -> List[re.Pattern]:
     with open(config_path, "r") as f:
@@ -48,30 +48,6 @@ def extract_relevant_sentences(sentences: List[str], model: SentenceTransformer,
     relevant_indices = [i for i, score in enumerate(similarity_scores) if score >= threshold]
     return relevant_indices, similarity_scores
 
-def build_segments(sentences: List[str], relevant_indices: List[int], model: SentenceTransformer, claim_embedding: Any, context_size: int = 2, similarity_threshold: float = 0.5) -> List[Dict[str, Any]]:
-    segments = []
-    for idx in relevant_indices:
-        start = max(idx - context_size, 0)
-        end = min(idx + context_size + 1, len(sentences))
-        segment_text = ' '.join(sentences[start:end])
-        segments.append({
-            'segment_start': start,
-            'segment_end': end,
-            'text': segment_text
-        })
-
-    segments.sort(key=lambda x: x['segment_start'])
-    # refined_segments = []
-    # for seg in segments:
-    #     seg_sentences = nltk.sent_tokenize(seg['text'])
-    #     seg_embeddings = model.encode(seg_sentences, convert_to_tensor=True)
-    #     seg_similarity = util.cos_sim(claim_embedding, seg_embeddings).mean().item()
-    #     if seg_similarity >= similarity_threshold:
-    #         refined_segments.append(seg)
-    
-    return segments
-    # return refined_segments
-
 def clean_and_check_text(webpage_text: str, unwanted_patterns: List[re.Pattern]) -> str:
     if webpage_text == "NA":
         return webpage_text, True
@@ -90,40 +66,46 @@ def clean_and_check_text(webpage_text: str, unwanted_patterns: List[re.Pattern])
             break
     return cleaned_text, flag
 
-def process_claims(search_results: Dict[str, Any], database_path: str, prompt_claim_entities_path: str, prompt_entity_relationship_path: str):   
+def process_claims(search_results: Dict[str, Any], database_path: str, prompt_claim_entities_path: str, prompt_entity_relationship_path: str, embed_model="text-embeddings-004"):   
     # Initialize sentence transformer model
     # embeddings_model = SentenceTransformer('all-MiniLM-L12-v2')
-    embeddings_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
-    use_segments = False
-    # ombine_evidence_pieces = True
+
+    if embed_model == "text-embeddings-004":
+        embeddings_model = GeminiAPI(secrets_file="secrets/gemini_keys.json")
+        sentence_threshold = 0.55
+    else:
+        embeddings_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
+        sentence_threshold = 0.575
 
     compiled_patterns = load_unwanted_patterns("unwanted_config.json")
-    
     filtered_articles = {}
+
     for claim_index, claim in enumerate(search_results):
-
-        # if claim_index > 25: # 15 made it break
-        #     break
-
         print(f"\nProcessing Claim ID: {claim_index}\n")
         filtered_articles[claim] = {}
-        claim_embedding = embeddings_model.encode(claim, convert_to_tensor=True)
         
-        claim_object = search_results[claim]
-        for query_index, query in enumerate(claim_object.keys()):
-            for page_index in claim_object[query].keys():
-                for article_index, article_metadata in enumerate(claim_object[query][page_index]):
+        # Get the embedding of the claim
+        if embed_model == "text-embeddings-004":
+            query_embedding = embeddings_model.get_text_embeddings(batched_text=[claim], task="semantic_similarity")
+        else:
+            query_embedding = embeddings_model.encode(claim, convert_to_tensor=True)
 
-                    # if article_index > 10:
-                    #     break
+        for query_index, query in enumerate(search_results[claim].keys()):
 
-                    # TODO: Use article_metadata for first level filtering
+            # if embed_model == "text-embeddings-004":
+            #     query_embedding = embeddings_model.get_text_embeddings(batched_text=[query], task="semantic_similarity")
+            # else:
+            #     query_embedding = embeddings_model.encode(query, convert_to_tensor=True)
 
-                    search_key = f"{claim_index}_{query_index}_{page_index}_{article_index}"
-                    if search_key in filtered_articles:
+            for page_index in search_results[claim][query].keys():
+                for article_index, article_metadata in enumerate(search_results[claim][query][page_index]):
+                    # Skip if the article is already processed
+                    if article_metadata["link"] in filtered_articles[claim]:
                         print("Article already processed")
                         continue
 
+                    # Fetch the article save_path from the database
+                    search_key = f"{claim_index}_{query_index}_{page_index}_{article_index}"
                     row = retrieve_row_by_key(search_key, database_path)
                     
                     if row:
@@ -144,6 +126,7 @@ def process_claims(search_results: Dict[str, Any], database_path: str, prompt_cl
                         continue
 
                     if article_text == "NA":
+                        print(f"Skipping article: {article_path}, no text")
                         continue
                     
                     # Tokenize sentences
@@ -153,69 +136,44 @@ def process_claims(search_results: Dict[str, Any], database_path: str, prompt_cl
                     # A helpful rule of thumb is that one token generally corresponds to ~4 characters of text for common English text. This translates to roughly ¾ of a word (so 100 tokens ~= 75 words).
                     # sentences = [sentence for sentence in sentences if len(sentence.split()) <= 15000]
 
+                    # Remove sentences that are less than 10 words and longer than 2000 characters
                     print(f"Number of Sentences (before filtering): {len(sentences)}")
-
-                    # Remove sentences that are less than 10 words
-                    # Trim sentences that are greater than 1700 characters long
                     sentences = [sentence for sentence in sentences if len(nltk.tokenize.word_tokenize(sentence)) >= 10 and len(sentence) <= 2000]
-                    # sentences = [sentence[:1700] for sentence in sentences]
-
                     print(f"Number of Sentences (after filtering): {len(sentences)}")
 
-                    if len(sentences) > 1000:
-                        print(f"Skipping article: {article_path}, too long")
-                        continue
-                    elif len(sentences) == 0:
-                        print(f"Skipping article: {article_path}, no sentences")
+                    # Skip large or empty articles
+                    if len(sentences) > 1000 or len(sentences) == 0:
+                        print(f"Skipping article: {article_path}, because #sentences is {len(sentences)}")
                         continue
 
                     # Step 1: Filter sentences based on similarity
-                    sentence_threshold = 0.55
-                    relevant_sentence_indices, similarity_scores = extract_relevant_sentences(
-                        sentences,
-                        embeddings_model,
-                        claim_embedding,
-                        threshold=sentence_threshold
-                    )
+                    if embed_model == "text-embeddings-004":                        
+                        gemini_embeddings = embeddings_model.get_text_embeddings(batched_text=sentences, task="semantic_similarity")
+                        similarity_scores = util.cos_sim(query_embedding, gemini_embeddings).squeeze().tolist()
+                        if isinstance(similarity_scores, float):
+                            similarity_scores = [similarity_scores]
+                        relevant_sentence_indices = [index for index, score in enumerate(similarity_scores) if score >= sentence_threshold]
+                    else:
+                        relevant_sentence_indices, similarity_scores = extract_relevant_sentences(
+                            sentences,
+                            embeddings_model,
+                            query_embedding,
+                            threshold=sentence_threshold
+                        )
                     
                     print(f"Number of Relevant Sentences (threshold={sentence_threshold}): {len(relevant_sentence_indices)}\n")
-
                     if len(relevant_sentence_indices) == 0:
-                        print("No relevant sentences found")
+                        print(f"Skipping article: {article_path}, because 0 similar sentences found")
                         continue
 
-                    # for idx in relevant_sentence_indices:
-                    #     print(f"Sentence {idx} (Score: {similarity_scores[idx]:.2f}):\n{sentences[idx]}\n")
-
                     # TODO: Use other strategies for segment extraction
-                    if use_segments:
-                        # Step 2: Build segments with surrounding context
-                        context_size = 1  # Number of sentences before and after
-                        segment_threshold = 0.5
-                        segments_with_context = build_segments(
-                            sentences,
-                            relevant_sentence_indices,
-                            embeddings_model,
-                            claim_embedding,
-                            context_size=context_size,
-                            similarity_threshold=segment_threshold
-                        )
-                        print(f"Number of Segments with Context (context size={context_size}): {len(segments_with_context)}\n")
-
-                        # article_summary = ""
-                        # for seg in segments_with_context:
-                        #     print(f"Segment {seg['segment_start']}-{seg['segment_end'] - 1}:\n{seg['text']}\n")
-
-                        filtered_articles[claim][search_key] = {
-                            "scores": [similarity_scores[i] for i in relevant_sentence_indices],
-                            "filtered_segments": [seg['text'] for seg in segments_with_context]                        
-                        }
-                    else:
-                        # article_summary = '\n'.join(sentences[i] for i in relevant_sentence_indices)
-                        filtered_articles[claim][search_key] = {
-                            "scores": [similarity_scores[i] for i in relevant_sentence_indices],
-                            "filtered_segments": [sentences[i] for i in relevant_sentence_indices]                        
-                        }
+                    # article_summary = '\n'.join(sentences[i] for i in relevant_sentence_indices)
+                    filtered_articles[claim][article_metadata["link"]] = {
+                        "title": article_metadata["title"],
+                        "query": query,
+                        "scores": [similarity_scores[i] for i in relevant_sentence_indices],
+                        "filtered_segments": [sentences[i] for i in relevant_sentence_indices]                        
+                    }
 
         with open("outputs/filtered_results.json", "w") as f:
             json.dump(filtered_articles, f, indent=2)
@@ -235,13 +193,12 @@ def main():
         search_results=search_results,
         database_path=database_path,
         prompt_claim_entities_path=prompt_claim_entities_path,
-        prompt_entity_relationship_path=prompt_entity_relationship_path
+        prompt_entity_relationship_path=prompt_entity_relationship_path,
+        embed_model="text-embeddings-004"
     )
 
 if __name__ == "__main__":
     main()
 
-
 # TODO: For each extracted high quality sentence, include its surrounding sentences to provide more context. 
 # TODO: CHECK DIFFERENT EMBEDDING COMPARISION - Jaccard Similarity, Cosine Similarity, Euclidean Distance
-

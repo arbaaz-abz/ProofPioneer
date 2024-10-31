@@ -12,8 +12,8 @@ class GeminiAPI:
         secrets_file,
         model_name="gemini-1.5-flash-latest",
         response_schema=None,
-        temperature=0.3,
-        top_p=0.9,
+        temperature=0.5,
+        top_p=0.5,
         top_k=40,
         response_mime_type="text/plain",
         safety_settings=None,
@@ -56,10 +56,11 @@ class GeminiAPI:
         # Configure API keys and rate limiting (Free version)
         if "flash" in model_name:
             self.max_requests_per_key = 1500
-            self.sleep_time = 3.5
+            self.sleep_time = 3.75
         else:
             self.max_requests_per_key = 50
-            self.sleep_time = 15
+            self.sleep_time = 25
+        self.embed_sleep_time = 0.25
 
         self.request_count = 0
 
@@ -83,7 +84,7 @@ class GeminiAPI:
             )
         return initialize_model
 
-    def get_llm_response(self, input_text):
+    def get_llm_response(self, input_text, custom_sleep=None):
         """
         Generates a response from the Gemini model based on the input_text using generate_content.
         Args:
@@ -100,7 +101,7 @@ class GeminiAPI:
                 input_text,
                 generation_config=self.generation_config
             )
-            time.sleep(self.sleep_time)
+            time.sleep(custom_sleep if custom_sleep else self.sleep_time)
             self.request_count += 1
             return response
         except Exception as e:
@@ -138,6 +139,7 @@ class GeminiAPI:
                                 content=batched_text,
                                 task_type=task
                                 )
+        time.sleep(self.embed_sleep_time)
         return result['embedding']
 
 # Usage Example:

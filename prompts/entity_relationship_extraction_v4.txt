@@ -4,17 +4,13 @@ Given the following excerpt from a news article, extract unique and meaningful e
 Guidelines:
 * Entities: Identify key subjects and objects, such as individuals (e.g., POTUS), organizations (e.g., CDC), countries (e.g., China), and significant events (e.g., First COVID-19 death).
 * Relationships: Determine the actions or associations that link these entities (e.g., issues, signs, recommends).
-* Complex Relationships: For sentences where the predicate is a complex phrase or includes multiple actions, strive to capture the core meaning using a concise predicate. If necessary, break down complex sentences into multiple triples to maintain clarity.
-* Neutrality: Extract relationships exactly as presented in the text, without adding personal opinions, judgments, or disclaimers about the content.
+* Complex Relationships: For sentences where the predicate is a complex phrase or includes multiple actions, capture the core meaning using a concise predicates. If necessary, break down complex sentences into multiple triples to maintain clarity.
+* Neutrality: While extracting relationships do not add personal opinions, judgments, or disclaimers about the content.
 * Language: Use the language and terms provided in the excerpt.
 * Uniqueness: Ensure that each relationship is unique and adds meaningful information for building a knowledge graph.
 * Clarity: Your triples must be clear and concise concise.
-* Connectivity:
-    - Ensure Full Connectivity: All extracted triples should be interconnected through shared entities to form a single, cohesive knowledge graph.
-    - Avoid Disconnected Subgraphs: Do not extract triples that belong to entirely separate contexts or clusters within the text.
-    - Prioritize Interrelated Information: When possible, prefer relationships that link different entities together, thereby enhancing the connectivity of the knowledge graph.
-    - Bridge Entities: If multiple clusters of information exist, identify and extract relationships that bridge these clusters through common entities.
-* Avoid: Do not include trivial details, duplicate information, or unrelated data. Do not add personal commentary, disclaimers, or alter the tone of the original text.
+* Connectivity: If possible, ensure graph connectivity, where all triples are interconnected through shared bridge entities to form a single, cohesive knowledge graph.
+* Avoid: Do not include trivial details or unrelated data. Do not add personal commentary, disclaimers, or alter the tone of the original text.
 
 Example 1:
 
@@ -22,8 +18,9 @@ Article Excerpt:
 Centers for Disease Control and Prevention recommends that travelers defer all cruise travel worldwide and avoid all nonessential travel to China.
 
 Extracted Triples:
-[{"subject": Centers for Disease Control and Prevention, "predicate": recommends, "object": travelers defer cruise travel worldwide},
-{"subject": Centers for Disease Control and Prevention, "predicate": recommends, "object": avoid nonessential travel to China}]
+[{"subject": "Centers for Disease Control and Prevention", "predicate": "recommends", "object": "travelers"},
+{"subject": "travelers", "predicate": "avoid nonessential travel", "object": "China"},
+{"subject": "travelers", "predicate": "defer cruise travel", "object": "worldwide"}]
 
 Example 2:
 
@@ -31,15 +28,15 @@ Article Excerpt:
 But the gist of it is that national Democrats, aided by Hollywood and a group of “global elites”, are running a massive ring devoted to the abduction, trafficking, torture, sexual abuse, and cannibalization of children, all with the purpose of fulfilling the rituals of their Satanic faith.
 
 Extracted Triples:
-[{"subject": National Democrats, "predicate": aided by, "object": Hollywood},
-{"subject": National Democrats, "predicate": aided by, "object": global elites},
-{"subject": National Democrats, "predicate": running, "object": Massive ring},
-{"subject": Massive ring, "predicate": devoted, "object": abduction},
-{"subject": Massive ring, "predicate": devoted, "object": trafficking},
-{"subject": Massive ring, "predicate": devoted, "object": torture},
-{"subject": Massive ring, "predicate": devoted, "object": sexual abuse},
-{"subject": Massive ring, "predicate": devoted, "object": cannibalization of children},
-{"subject": Massive ring, "predicate": purpose, "object": fulfilling rituals of Satanic faith}]
+[{"subject": "National Democrats", "predicate": "aided by", "object": "Hollywood"},
+{"subject": "National Democrats", "predicate": "aided by", "object": "global elites"},
+{"subject": "National Democrats", "predicate": "running", "object": "massive ring"},
+{"subject": "massive ring", "predicate": "devoted to", "object": "abduction"},
+{"subject": "massive ring", "predicate": "devoted to", "object": "trafficking"},
+{"subject": "massive ring", "predicate": "devoted to", "object": "torture"},
+{"subject": "massive ring", "predicate": "devoted to", "object": "sexual abuse"},
+{"subject": "massive ring", "predicate": "devoted to", "object": "cannibalization of children"},
+{"subject": "massive ring", "predicate": "purpose", "object": "fulfilling rituals of Satanic faith}]
 
 Now, apply these instructions to the following article excerpt:
 
